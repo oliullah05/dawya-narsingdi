@@ -7,8 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 /* ── Validation ────────────────────────────────────────────────────────── */
 const ANY_PHONE_REGEX = /^\+?[0-9\s().-]{7,20}$/;
-const FB_URL_REGEX =
-  /^(https?:\/\/)?(www\.)?(facebook\.com|fb\.com)\/[A-Za-z0-9_.-]+\/?$/i;
+// const FB_URL_REGEX =
+//   /^(https?:\/\/)?(www\.)?(facebook\.com|fb\.com)\/[A-Za-z0-9_.-]+\/?$/i;
 
 const schema = z.object({
   fullName: z.string().trim().min(2, "আপনার নাম লিখুন"),
@@ -38,14 +38,13 @@ const schema = z.object({
     }),
   facebook: z
     .string()
-    .optional()
-    .refine((v) => !v || FB_URL_REGEX.test(v), "সঠিক ফেসবুক লিংক দিন"),
+    .optional(),
+    // .refine((v) => !v || FB_URL_REGEX.test(v), "সঠিক ফেসবুক লিংক দিন"),
   address: z.string().trim().optional(),
   occupation: z.string().trim().optional(),
-  paymentMethod: z.enum(["bkash", "nagad"], {
-    required_error: "পেমেন্ট মাধ্যম সিলেক্ট করুন",
-    invalid_type_error: "পেমেন্ট মাধ্যম সিলেক্ট করুন",
-  }),
+  paymentMethod: z
+    .enum(["bkash", "nagad"])
+    .refine((val) => !!val, { message: "পেমেন্ট মাধ্যম সিলেক্ট করুন" }),
   transactionId: z
     .string()
     .trim()
@@ -102,6 +101,7 @@ function PaymentMethodRadios({
   control,
   error,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   control: any;
   error?: string;
 }) {
@@ -148,6 +148,7 @@ export default function FancySeminarRegisterFormLight() {
   const {
     register,
     handleSubmit,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     formState: { errors, isSubmitting, isSubmitSuccessful },
     reset,
     watch,
