@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -22,13 +22,12 @@ const schema = z.object({
     .refine((v) => !v || /^\d{1,3}$/.test(v), "সঠিক বয়স দিন")
     .refine((v) => !v || (+v >= 8 && +v <= 120), "বয়স ৮–১২০ এর মধ্যে দিন"),
   phone: z.string().trim().regex(ANY_PHONE_REGEX, "সঠিক ফোন নম্বর লিখুন"),
-  // email: z.string().trim().email("সঠিক ইমেইল দিন"),
   email: z
     .string()
     .trim()
     .optional()
     .superRefine((val, ctx) => {
-      if (!val) return; // optional: skip if empty/undefined
+      if (!val) return;
       const ok = z.string().email().safeParse(val).success;
       if (!ok) {
         ctx.addIssue({
@@ -41,7 +40,6 @@ const schema = z.object({
     .string()
     .optional()
     .refine((v) => !v || FB_URL_REGEX.test(v), "সঠিক ফেসবুক লিংক দিন"),
-  // address: z.string().trim().min(5, "সম্পূর্ণ ঠিকানা লিখুন"),
   address: z.string().trim().optional(),
   occupation: z.string().trim().optional(),
   paymentMethod: z.enum(["bkash", "nagad"], {
@@ -52,26 +50,11 @@ const schema = z.object({
     .string()
     .trim()
     .min(6, "ট্রাঞ্জেকশন আইডি দিন")
-    .max(50, "ট্রাঞ্জেকশন আইডি অতিরিক্ত বড়"),
+    .max(50, "트াঞ্জেকশন আইডি অতিরিক্ত বড়"),
   agree: z
     .boolean({ error: "শর্তে সম্মতি দিন" })
     .refine((v) => v === true, { message: "শর্তে সম্মতি দিতে হবে" }),
 });
-//   .superRefine((d, ctx) => {
-//     if (!d.dob && !d.age) {
-//       ctx.addIssue({
-//         code: "custom",
-//         message: "জন্ম তারিখ বা বয়স—যেকোনো একটি দিন",
-//         path: ["dob"],
-//       });
-//       ctx.addIssue({
-//         code: "custom",
-//         message: "জন্ম তারিখ বা বয়স—যেকোনো একটি দিন",
-//         path: ["age"],
-//       });
-//     }
-
-//   });
 
 type FormValues = z.infer<typeof schema>;
 
@@ -114,6 +97,53 @@ const Field = ({
   </div>
 );
 
+/** ── Controlled radios reused in mobile + desktop ───────────────────── */
+function PaymentMethodRadios({
+  control,
+  error,
+}: {
+  control: any;
+  error?: string;
+}) {
+  return (
+    <>
+      <Controller
+        name="paymentMethod"
+        control={control}
+        render={({ field }) => (
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <label>
+              <input
+                type="radio"
+                value="bkash"
+                checked={field.value === "bkash"}
+                onChange={() => field.onChange("bkash")}
+                className="peer hidden"
+              />
+              <div className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-slate-700 peer-checked:border-indigo-500 peer-checked:ring-4 peer-checked:ring-indigo-100">
+                বিকাশ
+              </div>
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="nagad"
+                checked={field.value === "nagad"}
+                onChange={() => field.onChange("nagad")}
+                className="peer hidden"
+              />
+              <div className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-slate-700 peer-checked:border-emerald-500 peer-checked:ring-4 peer-checked:ring-emerald-100">
+                নগদ
+              </div>
+            </label>
+          </div>
+        )}
+      />
+      <ErrorLine msg={error} />
+    </>
+  );
+}
+
 export default function FancySeminarRegisterFormLight() {
   const {
     register,
@@ -121,11 +151,12 @@ export default function FancySeminarRegisterFormLight() {
     formState: { errors, isSubmitting, isSubmitSuccessful },
     reset,
     watch,
+    control,
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     mode: "onChange",
     defaultValues: {
-      paymentMethod: "bkash",
+      paymentMethod: "bkash", // ✅ default shows active on both views
       agree: false,
     },
   });
@@ -300,7 +331,7 @@ export default function FancySeminarRegisterFormLight() {
             </div>
           </div>
 
-          {/* aside */}
+          {/* aside (MOBILE) */}
           <aside className="space-y-5 md:col-span-2 block sm:hidden">
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
               <h3 className="text-lg font-semibold text-slate-900">পেমেন্ট</h3>
@@ -308,32 +339,10 @@ export default function FancySeminarRegisterFormLight() {
                 রেজিস্ট্রেশন ফি: <span className="font-semibold">৬০০৳</span>
               </p>
 
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <label>
-                  <input
-                    type="radio"
-                    value="bkash"
-                    {...register("paymentMethod")}
-                    className="peer hidden"
-                  />
-                  <div className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-slate-700 peer-checked:border-indigo-500 peer-checked:ring-4 peer-checked:ring-indigo-100">
-                    বিকাশ
-                  </div>
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    value="nagad"
-                    {...register("paymentMethod")}
-                    className="peer hidden"
-                  />
-                  <div className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-slate-700 peer-checked:border-emerald-500 peer-checked:ring-4 peer-checked:ring-emerald-100">
-                    নগদ
-                  </div>
-                </label>
-              </div>
-              <ErrorLine
-                msg={errors.paymentMethod?.message as string | undefined}
+              {/* ✅ Reused controlled radios */}
+              <PaymentMethodRadios
+                control={control}
+                error={errors.paymentMethod?.message as string | undefined}
               />
 
               <div className="mt-2 space-y-2">
@@ -364,7 +373,7 @@ export default function FancySeminarRegisterFormLight() {
 
               <div className="mt-4">
                 <Field
-                  label="ট্রাঞ্জেকশন আইডি"
+                  label="트াঞ্জেকশন আইডি"
                   required
                   error={errors.transactionId?.message}
                 >
@@ -385,8 +394,6 @@ export default function FancySeminarRegisterFormLight() {
                 </p>
               </div>
             </div>
-
-           
           </aside>
 
           <div className="space-y-2 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
@@ -419,14 +426,10 @@ export default function FancySeminarRegisterFormLight() {
                 Reset
               </button>
             </div>
-             {/* <div className="rounded-3xl border border-slate-200 bg-white p-5 text-xs text-slate-600 shadow-sm">
-              পাসওয়ার্ড বা সংবেদনশীল তথ্য দেবেন না। প্রদত্ত তথ্য শুধুমাত্র
-              রেজিস্ট্রেশন যাচাইকরণের জন্য ব্যবহৃত হবে।
-            </div> */}
           </div>
         </div>
 
-        {/* Payment */}
+        {/* Payment (DESKTOP) */}
         <aside className="space-y-5 md:col-span-2 hidden sm:block">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
             <h3 className="text-lg font-semibold text-slate-900">পেমেন্ট</h3>
@@ -434,32 +437,10 @@ export default function FancySeminarRegisterFormLight() {
               রেজিস্ট্রেশন ফি: <span className="font-semibold">৬০০৳</span>
             </p>
 
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <label>
-                <input
-                  type="radio"
-                  value="bkash"
-                  {...register("paymentMethod")}
-                  className="peer hidden"
-                />
-                <div className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-slate-700 peer-checked:border-indigo-500 peer-checked:ring-4 peer-checked:ring-indigo-100">
-                  বিকাশ
-                </div>
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  value="nagad"
-                  {...register("paymentMethod")}
-                  className="peer hidden"
-                />
-                <div className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-slate-700 peer-checked:border-emerald-500 peer-checked:ring-4 peer-checked:ring-emerald-100">
-                  নগদ
-                </div>
-              </label>
-            </div>
-            <ErrorLine
-              msg={errors.paymentMethod?.message as string | undefined}
+            {/* ✅ Reused controlled radios */}
+            <PaymentMethodRadios
+              control={control}
+              error={errors.paymentMethod?.message as string | undefined}
             />
 
             <div className="mt-2 space-y-2">
@@ -490,7 +471,7 @@ export default function FancySeminarRegisterFormLight() {
 
             <div className="mt-4">
               <Field
-                label="ট্রাঞ্জেকশন আইডি"
+                label="ট্রাঞ্জেকশন আইডি / Transaction ID"
                 required
                 error={errors.transactionId?.message}
               >
