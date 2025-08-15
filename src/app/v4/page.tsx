@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import React, { useMemo, useState, useEffect } from "react";
+import { useForm, Controller, Control } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -47,7 +47,7 @@ const schema = z.object({
     .string()
     .trim()
     .min(6, "ট্রাঞ্জেকশন আইডি দিন")
-    .max(50, "트াঞ্জেকশন আইডি অতিরিক্ত বড়"),
+    .max(50, "ট্রাঞ্জেকশন আইডি অতিরিক্ত বড়"),
   agree: z
     .boolean({ error: "শর্তে সম্মতি দিন" })
     .refine((v) => v === true, { message: "শর্তে সম্মতি দিতে হবে" }),
@@ -94,13 +94,26 @@ const Field = ({
   </div>
 );
 
+/* ── Media query hook to conditionally mount inputs ───────────────────── */
+function useMedia(query: string) {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const m = window.matchMedia(query);
+    const onChange = () => setMatches(m.matches);
+    onChange();
+    m.addEventListener("change", onChange);
+    return () => m.removeEventListener("change", onChange);
+  }, [query]);
+  return matches;
+}
+
 /** ── Controlled radios reused in mobile + desktop ───────────────────── */
 function PaymentMethodRadios({
   control,
   error,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  control: any;
+  control: Control<FormValues>;
   error?: string;
 }) {
   return (
@@ -146,20 +159,21 @@ export default function FancySeminarRegisterFormLight() {
   const {
     register,
     handleSubmit,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors, isSubmitting /*, isSubmitSuccessful*/ },
     reset,
     watch,
     control,
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     mode: "onChange",
+    shouldUnregister: true, // ✅ ensure unmounted fields are removed from RHF state
     defaultValues: {
-      paymentMethod: "bkash", // ✅ default shows active on both views
+      paymentMethod: "bkash",
       agree: false,
     },
   });
 
+  const isSmall = useMedia("(max-width: 639px)"); // Tailwind 'sm' breakpoint
   const [copied, setCopied] = useState<string | null>(null);
   const paymentMethod = watch("paymentMethod");
   const payNumber = useMemo(
@@ -373,22 +387,25 @@ export default function FancySeminarRegisterFormLight() {
               </div>
 
               <div className="mt-4">
-                <Field
-                  label="트াঞ্জেকশন আইডি"
-                  required
-                  error={errors.transactionId?.message}
-                >
-                  <input
-                    {...register("transactionId")}
-                    aria-invalid={!!errors.transactionId}
-                    placeholder="যেমন: TXN8ABCD1234"
-                    className={`${inputBase} ${
-                      errors.transactionId
-                        ? inputErr
-                        : "border-slate-200 focus:border-emerald-400 focus:ring-emerald-100"
-                    }`}
-                  />
-                </Field>
+                {/* ✅ Mount this field ONLY on small screens */}
+                {isSmall && (
+                  <Field
+                    label="ট্রাঞ্জেকশন আইডি / Transaction ID"
+                    required
+                    error={errors.transactionId?.message}
+                  >
+                    <input
+                      {...register("transactionId")}
+                      aria-invalid={!!errors.transactionId}
+                      placeholder="যেমন: TXN8ABCD1234"
+                      className={`${inputBase} ${
+                        errors.transactionId
+                          ? inputErr
+                          : "border-slate-200 focus:border-emerald-400 focus:ring-emerald-100"
+                      }`}
+                    />
+                  </Field>
+                )}
                 <p className="text-xs mt-1 text-slate-600">
                   পেমেন্টের পর আপনার ট্রাঞ্জেকশন আইডি লিখুন। প্রয়োজনে
                   হোয়াটসঅ্যাপে নিশ্চিত করুন।
@@ -446,9 +463,9 @@ export default function FancySeminarRegisterFormLight() {
 
             <div className="mt-2 space-y-2">
               <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                        <div className="text-sm text-slate-600">
-                    {paymentMethod === "nagad" ? "নগদ নম্বর" : "বিকাশ নম্বর"}
-                  </div>
+                <div className="text-sm text-slate-600">
+                  {paymentMethod === "nagad" ? "নগদ নম্বর" : "বিকাশ নম্বর"}
+                </div>
                 <div className="font-medium text-slate-900">{payNumber}</div>
               </div>
               <div className="flex gap-2">
@@ -473,22 +490,25 @@ export default function FancySeminarRegisterFormLight() {
             </div>
 
             <div className="mt-4">
-              <Field
-                label="ট্রাঞ্জেকশন আইডি / Transaction ID"
-                required
-                error={errors.transactionId?.message}
-              >
-                <input
-                  {...register("transactionId")}
-                  aria-invalid={!!errors.transactionId}
-                  placeholder="যেমন: TXN8ABCD1234"
-                  className={`${inputBase} ${
-                    errors.transactionId
-                      ? inputErr
-                      : "border-slate-200 focus:border-emerald-400 focus:ring-emerald-100"
-                  }`}
-                />
-              </Field>
+              {/* ✅ Mount this field ONLY on desktop and up */}
+              {!isSmall && (
+                <Field
+                  label="ট্রাঞ্জেকশন আইডি / Transaction ID"
+                  required
+                  error={errors.transactionId?.message}
+                >
+                  <input
+                    {...register("transactionId")}
+                    aria-invalid={!!errors.transactionId}
+                    placeholder="যেমন: TXN8ABCD1234"
+                    className={`${inputBase} ${
+                      errors.transactionId
+                        ? inputErr
+                        : "border-slate-200 focus:border-emerald-400 focus:ring-emerald-100"
+                    }`}
+                  />
+                </Field>
+              )}
               <p className="text-xs mt-1 text-slate-600">
                 পেমেন্টের পর আপনার ট্রাঞ্জেকশন আইডি লিখুন। প্রয়োজনে হোয়াটসঅ্যাপে
                 নিশ্চিত করুন।
