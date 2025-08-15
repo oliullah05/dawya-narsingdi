@@ -1,4 +1,3 @@
-"use client"
 "use client";
 
 import React, { useMemo, useState } from "react";
@@ -8,23 +7,28 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 /* ── Validation ────────────────────────────────────────────────────────── */
 const ANY_PHONE_REGEX = /^\+?[0-9\s().-]{7,20}$/;
-const FB_URL_REGEX = /^(https?:\/\/)?(www\.)?(facebook\.com|fb\.com)\/[A-Za-z0-9_.-]+\/?$/i;
+const FB_URL_REGEX =
+  /^(https?:\/\/)?(www\.)?(facebook\.com|fb\.com)\/[A-Za-z0-9_.-]+\/?$/i;
 
 const schema = z
   .object({
     fullName: z.string().trim().min(1, "আপনার নাম লিখুন"),
-    dob: z.string().optional().refine((v) => !v || !Number.isNaN(Date.parse(v)), "সঠিক জন্মতারিখ দিন"),
+    dob: z
+      .string()
+      .optional()
+      .refine((v) => !v || !Number.isNaN(Date.parse(v)), "সঠিক জন্মতারিখ দিন"),
     age: z
       .string()
       .optional()
       .refine((v) => !v || /^\d{1,3}$/.test(v), "সঠিক বয়স দিন")
       .refine((v) => !v || (+v >= 8 && +v <= 120), "বয়স ৮–১২০ এর মধ্যে দিন"),
-    phone: z.string()
-  .trim()
-  .regex(ANY_PHONE_REGEX, "সঠিক ফোন নম্বর লিখুন"),
+    phone: z.string().trim().regex(ANY_PHONE_REGEX, "সঠিক ফোন নম্বর লিখুন"),
     // email: z.string().trim().email("সঠিক ইমেইল দিন"),
     email: z.string().trim().email(" "),
-    facebook: z.string().optional().refine((v) => !v || FB_URL_REGEX.test(v), "সঠিক ফেসবুক লিংক দিন"),
+    facebook: z
+      .string()
+      .optional()
+      .refine((v) => !v || FB_URL_REGEX.test(v), "সঠিক ফেসবুক লিংক দিন"),
     // address: z.string().trim().min(5, "সম্পূর্ণ ঠিকানা লিখুন"),
     address: z.string().trim().optional(),
     occupation: z.string().trim().optional(),
@@ -32,13 +36,27 @@ const schema = z
       required_error: "পেমেন্ট মাধ্যম সিলেক্ট করুন",
       invalid_type_error: "পেমেন্ট মাধ্যম সিলেক্ট করুন",
     }),
-    transactionId: z.string().trim().min(6, "ট্রাঞ্জেকশন আইডি দিন").max(50, "ট্রাঞ্জেকশন আইডি অতিরিক্ত বড়"),
-    agree: z.literal(true, { errorMap: () => ({ message: "শর্তে সম্মতি দিন" }) }),
+    transactionId: z
+      .string()
+      .trim()
+      .min(6, "ট্রাঞ্জেকশন আইডি দিন")
+      .max(50, "ট্রাঞ্জেকশন আইডি অতিরিক্ত বড়"),
+    agree: z.literal(true, {
+      errorMap: () => ({ message: "শর্তে সম্মতি দিন" }),
+    }),
   })
   .superRefine((d, ctx) => {
     if (!d.dob && !d.age) {
-      ctx.addIssue({ code: "custom", message: "জন্ম তারিখ বা বয়স—যেকোনো একটি দিন", path: ["dob"] });
-      ctx.addIssue({ code: "custom", message: "জন্ম তারিখ বা বয়স—যেকোনো একটি দিন", path: ["age"] });
+      ctx.addIssue({
+        code: "custom",
+        message: "জন্ম তারিখ বা বয়স—যেকোনো একটি দিন",
+        path: ["dob"],
+      });
+      ctx.addIssue({
+        code: "custom",
+        message: "জন্ম তারিখ বা বয়স—যেকোনো একটি দিন",
+        path: ["age"],
+      });
     }
   });
 
@@ -47,11 +65,16 @@ type FormValues = z.infer<typeof schema>;
 /* ── UI helpers (alignment-safe) ───────────────────────────────────────── */
 const inputBase =
   "w-full rounded-xl border px-4 py-3 text-slate-900 bg-white placeholder:text-slate-400 outline-none transition focus:ring-4";
-const inputOk   = "border-slate-200 focus:border-indigo-400 focus:ring-indigo-100";
-const inputErr  = "border-rose-300 focus:border-rose-400 focus:ring-rose-100";
+const inputOk =
+  "border-slate-200 focus:border-indigo-400 focus:ring-indigo-100";
+const inputErr = "border-rose-300 focus:border-rose-400 focus:ring-rose-100";
 
 const ErrorLine = ({ msg }: { msg?: string }) => (
-  <p className={`mt-1 h-5 text-xs ${msg ? "text-rose-600 visible" : "invisible"}`}>
+  <p
+    className={`mt-1 h-5 text-xs ${
+      msg ? "text-rose-600 visible" : "invisible"
+    }`}
+  >
     {msg || "placeholder"}
   </p>
 );
@@ -74,7 +97,7 @@ const Field = ({
       </p>
     </div>
     {children}
-   {error&& <ErrorLine msg={error} />}
+    {error && <ErrorLine msg={error} />}
   </div>
 );
 
@@ -116,13 +139,15 @@ export default function FancySeminarRegisterFormLight() {
           <div className="absolute inset-0 bg-[radial-gradient(1200px_400px_at_-10%_-10%,rgba(99,102,241,0.15),transparent),radial-gradient(800px_300px_at_110%_20%,rgba(16,185,129,0.12),transparent)]" />
           <div className="relative p-8 md:p-10">
             <span className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs text-indigo-700">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Seats are limited
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />{" "}
+              Seats are limited
             </span>
             <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
               উম্মাহর জাগরণে করনীয় শীর্ষক সেমিনার ২০২৫
             </h1>
             <p className="mt-2 max-w-2xl text-slate-600">
-              অংশগ্রহণের জন্য নিচের ফর্মটি পূরণ করে সাবমিট করুন। যাচাইকৃত আসন নিশ্চিত করতে রেজিস্ট্রেশন ফি প্রদান করুন।
+              অংশগ্রহণের জন্য নিচের ফর্মটি পূরণ করে সাবমিট করুন। যাচাইকৃত আসন
+              নিশ্চিত করতে রেজিস্ট্রেশন ফি প্রদান করুন।
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
               <span className="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1">
@@ -146,55 +171,75 @@ export default function FancySeminarRegisterFormLight() {
         <div className="space-y-5 md:col-span-3">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <Field label="পূর্ণ নাম" required error={errors.fullName?.message}>
+              <Field
+                label="পূর্ণ নাম"
+                required
+                error={errors.fullName?.message}
+              >
                 <input
                   {...register("fullName")}
                   aria-invalid={!!errors.fullName}
-                  placeholder="Type your full name"
-                  className={`${inputBase} ${errors.fullName ? inputErr : inputOk}`}
+                  placeholder="আপনার পূর্ণ নাম লিখুন."
+                  className={`${inputBase} ${
+                    errors.fullName ? inputErr : inputOk
+                  }`}
                 />
               </Field>
 
-              <Field label="ইমেইল ঠিকানা"  error={errors.email?.message}>
+              <Field label="ইমেইল ঠিকানা" error={errors.email?.message}>
                 <input
                   type="email"
                   {...register("email")}
                   aria-invalid={!!errors.email}
-                  placeholder="you@example.com"
-                  className={`${inputBase} ${errors.email ?  inputOk: inputOk}`}
+                  placeholder="আপনার ইমেইল লিখুন."
+                  className={`${inputBase} ${errors.email ? inputOk : inputOk}`}
                 />
               </Field>
 
-              <Field label="জন্ম তারিখ (ঐচ্ছিক)" error={errors.dob?.message as string | undefined}>
+              <Field
+                label="জন্ম তারিখ (ঐচ্ছিক)"
+                error={errors.dob?.message as string | undefined}
+              >
                 <input
                   type="date"
                   {...register("dob")}
                   aria-invalid={!!errors.dob}
-                  className={`${inputBase} ${errors.dob ? inputErr : "border-slate-200 focus:border-sky-400 focus:ring-sky-100"}`}
+                  className={`${inputBase} ${
+                    errors.dob
+                      ? inputErr
+                      : "border-slate-200 focus:border-sky-400 focus:ring-sky-100"
+                  }`}
                 />
               </Field>
- <Field label="পেশা"  error={errors.occupation?.message}>
+
+              <Field label="পেশা" error={errors.occupation?.message}>
                 <input
                   {...register("occupation")}
                   aria-invalid={!!errors.occupation}
                   placeholder="যেমন: ছাত্র/শিক্ষক/ব্যবসায়ী"
-                  className={`${inputBase} ${errors.occupation ? inputErr : inputOk}`}
+                  className={`${inputBase} ${
+                    errors.occupation ? inputErr : inputOk
+                  }`}
                 />
               </Field>
 
-<div className="md:col-span-2">
-
-              <Field label="মোবাইল নাম্বার (হোয়াটসঅ্যাপ থাকা নাম্বার দিন)" required error={errors.phone?.message}>
-                <input
-                  type="tel"
-                  {...register("phone")}
-                  aria-invalid={!!errors.phone}
-                  placeholder="+8801XXXXXXXXX"
-                  className={`${inputBase} ${errors.phone ? inputErr : inputOk}`}
-                />
-              </Field>
-</div>
-             
+              <div className="md:col-span-2">
+                <Field
+                  label="মোবাইল নাম্বার (হোয়াটসঅ্যাপ থাকা নাম্বার দিন)"
+                  required
+                  error={errors.phone?.message}
+                >
+                  <input
+                    type="tel"
+                    {...register("phone")}
+                    aria-invalid={!!errors.phone}
+                    placeholder="+8801XXXXXXXXX"
+                    className={`${inputBase} ${
+                      errors.phone ? inputErr : inputOk
+                    }`}
+                  />
+                </Field>
+              </div>
 
               <Field
                 label="ফেইসবুক আইডি লিংক (ঐচ্ছিক)"
@@ -205,17 +250,28 @@ export default function FancySeminarRegisterFormLight() {
                   {...register("facebook")}
                   aria-invalid={!!errors.facebook}
                   placeholder="https://facebook.com/your.profile"
-                  className={`${inputBase} ${errors.facebook ? inputErr : "border-slate-200 focus:border-violet-400 focus:ring-violet-100"}`}
+                  className={`${inputBase} ${
+                    errors.facebook
+                      ? inputErr
+                      : "border-slate-200 focus:border-violet-400 focus:ring-violet-100"
+                  }`}
                 />
               </Field>
 
-              <div >
-                <Field label="গ্রাম, ইউনিয়ন, থানা ও জেলা"  error={errors.address?.message}>
+              <div>
+                <Field
+                  label="গ্রাম, ইউনিয়ন, থানা ও জেলা"
+                  error={errors.address?.message}
+                >
                   <input
                     {...register("address")}
                     aria-invalid={!!errors.address}
                     placeholder="সম্পূর্ণ ঠিকানা"
-                    className={`${inputBase} ${errors.address ? inputErr : "border-slate-200 focus:border-violet-400 focus:ring-violet-100"}`}
+                    className={`${inputBase} ${
+                      errors.address
+                        ? inputErr
+                        : "border-slate-200 focus:border-violet-400 focus:ring-violet-100"
+                    }`}
                   />
                 </Field>
               </div>
@@ -230,7 +286,8 @@ export default function FancySeminarRegisterFormLight() {
                 className="mt-1 h-5 w-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-300"
               />
               <span className="text-sm leading-relaxed text-slate-700">
-                উপরে দেয়া তথ্য সঠিক। প্রয়োজন হলে আয়োজক কর্তৃপক্ষ আমার সাথে যোগাযোগ করতে পারবেন।
+                উপরে দেয়া তথ্য সঠিক। প্রয়োজন হলে আয়োজক কর্তৃপক্ষ আমার সাথে
+                যোগাযোগ করতে পারবেন।
               </span>
             </label>
             <ErrorLine msg={errors.agree?.message as string | undefined} />
@@ -251,7 +308,9 @@ export default function FancySeminarRegisterFormLight() {
                 Reset
               </button>
               {isSubmitSuccessful && (
-                <span className="text-sm text-emerald-600">✅ Submitted (demo front-end)</span>
+                <span className="text-sm text-emerald-600">
+                  ✅ Submitted (demo front-end)
+                </span>
               )}
             </div>
           </div>
@@ -267,19 +326,31 @@ export default function FancySeminarRegisterFormLight() {
 
             <div className="mt-4 grid grid-cols-2 gap-2">
               <label>
-                <input type="radio" value="bkash" {...register("paymentMethod")} className="peer hidden" />
+                <input
+                  type="radio"
+                  value="bkash"
+                  {...register("paymentMethod")}
+                  className="peer hidden"
+                />
                 <div className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-slate-700 peer-checked:border-indigo-500 peer-checked:ring-4 peer-checked:ring-indigo-100">
                   বিকাশ
                 </div>
               </label>
               <label>
-                <input type="radio" value="nagad" {...register("paymentMethod")} className="peer hidden" />
+                <input
+                  type="radio"
+                  value="nagad"
+                  {...register("paymentMethod")}
+                  className="peer hidden"
+                />
                 <div className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-slate-700 peer-checked:border-emerald-500 peer-checked:ring-4 peer-checked:ring-emerald-100">
                   নগদ
                 </div>
               </label>
             </div>
-            <ErrorLine msg={errors.paymentMethod?.message as string | undefined} />
+            <ErrorLine
+              msg={errors.paymentMethod?.message as string | undefined}
+            />
 
             <div className="mt-2 space-y-2">
               <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -302,26 +373,38 @@ export default function FancySeminarRegisterFormLight() {
                   কপি নগদ
                 </button>
               </div>
-              {copied && <p className="mt-1 text-xs text-emerald-600">কপি হয়েছে!</p>}
+              {copied && (
+                <p className="mt-1 text-xs text-emerald-600">কপি হয়েছে!</p>
+              )}
             </div>
 
             <div className="mt-4">
-              <Field label="ট্রাঞ্জেকশন আইডি" required error={errors.transactionId?.message}>
+              <Field
+                label="ট্রাঞ্জেকশন আইডি"
+                required
+                error={errors.transactionId?.message}
+              >
                 <input
                   {...register("transactionId")}
                   aria-invalid={!!errors.transactionId}
                   placeholder="যেমন: TXN8ABCD1234"
-                  className={`${inputBase} ${errors.transactionId ? inputErr : "border-slate-200 focus:border-emerald-400 focus:ring-emerald-100"}`}
+                  className={`${inputBase} ${
+                    errors.transactionId
+                      ? inputErr
+                      : "border-slate-200 focus:border-emerald-400 focus:ring-emerald-100"
+                  }`}
                 />
               </Field>
               <p className="text-xs text-slate-600">
-                পেমেন্টের পর আপনার ট্রাঞ্জেকশন আইডি লিখুন। প্রয়োজনে হোয়াটসঅ্যাপে নিশ্চিত করুন।
+                পেমেন্টের পর আপনার ট্রাঞ্জেকশন আইডি লিখুন। প্রয়োজনে হোয়াটসঅ্যাপে
+                নিশ্চিত করুন।
               </p>
             </div>
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-5 text-xs text-slate-600 shadow-sm">
-            পাসওয়ার্ড বা সংবেদনশীল তথ্য দেবেন না। প্রদত্ত তথ্য শুধুমাত্র রেজিস্ট্রেশন যাচাইকরণের জন্য ব্যবহৃত হবে।
+            পাসওয়ার্ড বা সংবেদনশীল তথ্য দেবেন না। প্রদত্ত তথ্য শুধুমাত্র
+            রেজিস্ট্রেশন যাচাইকরণের জন্য ব্যবহৃত হবে।
           </div>
         </aside>
       </form>
