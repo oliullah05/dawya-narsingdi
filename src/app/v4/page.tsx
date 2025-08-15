@@ -10,54 +10,53 @@ const ANY_PHONE_REGEX = /^\+?[0-9\s().-]{7,20}$/;
 const FB_URL_REGEX =
   /^(https?:\/\/)?(www\.)?(facebook\.com|fb\.com)\/[A-Za-z0-9_.-]+\/?$/i;
 
-const schema = z
-  .object({
-    fullName: z.string().trim().min(2, "আপনার নাম লিখুন"),
-    dob: z
-      .string()
-      .optional()
-      .refine((v) => !v || !Number.isNaN(Date.parse(v)), "সঠিক জন্মতারিখ দিন"),
-    age: z
-      .string()
-      .optional()
-      .refine((v) => !v || /^\d{1,3}$/.test(v), "সঠিক বয়স দিন")
-      .refine((v) => !v || (+v >= 8 && +v <= 120), "বয়স ৮–১২০ এর মধ্যে দিন"),
-    phone: z.string().trim().regex(ANY_PHONE_REGEX, "সঠিক ফোন নম্বর লিখুন"),
-    // email: z.string().trim().email("সঠিক ইমেইল দিন"),
-email: z
-  .string()
-  .trim()
-  .optional()
-  .superRefine((val, ctx) => {
-    if (!val) return; // optional: skip if empty/undefined
-    const ok = z.string().email().safeParse(val).success;
-    if (!ok) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "সঠিক ইমেইল দিন",
-      });
-    }
-  }),
-    facebook: z
-      .string()
-      .optional()
-      .refine((v) => !v || FB_URL_REGEX.test(v), "সঠিক ফেসবুক লিংক দিন"),
-    // address: z.string().trim().min(5, "সম্পূর্ণ ঠিকানা লিখুন"),
-    address: z.string().trim().optional(),
-    occupation: z.string().trim().optional(),
-    paymentMethod: z.enum(["bkash", "nagad"], {
-      required_error: "পেমেন্ট মাধ্যম সিলেক্ট করুন",
-      invalid_type_error: "পেমেন্ট মাধ্যম সিলেক্ট করুন",
+const schema = z.object({
+  fullName: z.string().trim().min(2, "আপনার নাম লিখুন"),
+  dob: z
+    .string()
+    .optional()
+    .refine((v) => !v || !Number.isNaN(Date.parse(v)), "সঠিক জন্মতারিখ দিন"),
+  age: z
+    .string()
+    .optional()
+    .refine((v) => !v || /^\d{1,3}$/.test(v), "সঠিক বয়স দিন")
+    .refine((v) => !v || (+v >= 8 && +v <= 120), "বয়স ৮–১২০ এর মধ্যে দিন"),
+  phone: z.string().trim().regex(ANY_PHONE_REGEX, "সঠিক ফোন নম্বর লিখুন"),
+  // email: z.string().trim().email("সঠিক ইমেইল দিন"),
+  email: z
+    .string()
+    .trim()
+    .optional()
+    .superRefine((val, ctx) => {
+      if (!val) return; // optional: skip if empty/undefined
+      const ok = z.string().email().safeParse(val).success;
+      if (!ok) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "সঠিক ইমেইল দিন",
+        });
+      }
     }),
-    transactionId: z
-      .string()
-      .trim()
-      .min(6, "ট্রাঞ্জেকশন আইডি দিন")
-      .max(50, "ট্রাঞ্জেকশন আইডি অতিরিক্ত বড়"),
+  facebook: z
+    .string()
+    .optional()
+    .refine((v) => !v || FB_URL_REGEX.test(v), "সঠিক ফেসবুক লিংক দিন"),
+  // address: z.string().trim().min(5, "সম্পূর্ণ ঠিকানা লিখুন"),
+  address: z.string().trim().optional(),
+  occupation: z.string().trim().optional(),
+  paymentMethod: z.enum(["bkash", "nagad"], {
+    required_error: "পেমেন্ট মাধ্যম সিলেক্ট করুন",
+    invalid_type_error: "পেমেন্ট মাধ্যম সিলেক্ট করুন",
+  }),
+  transactionId: z
+    .string()
+    .trim()
+    .min(6, "ট্রাঞ্জেকশন আইডি দিন")
+    .max(50, "ট্রাঞ্জেকশন আইডি অতিরিক্ত বড়"),
   agree: z
-  .boolean({ error: "শর্তে সম্মতি দিন" })
-  .refine((v) => v === true, { message: "শর্তে সম্মতি দিতে হবে" }),
-  })
+    .boolean({ error: "শর্তে সম্মতি দিন" })
+    .refine((v) => v === true, { message: "শর্তে সম্মতি দিতে হবে" }),
+});
 //   .superRefine((d, ctx) => {
 //     if (!d.dob && !d.age) {
 //       ctx.addIssue({
@@ -71,7 +70,7 @@ email: z
 //         path: ["age"],
 //       });
 //     }
-    
+
 //   });
 
 type FormValues = z.infer<typeof schema>;
@@ -122,11 +121,14 @@ export default function FancySeminarRegisterFormLight() {
     formState: { errors, isSubmitting, isSubmitSuccessful },
     reset,
     watch,
-    
-  } = useForm<FormValues>({ resolver: zodResolver(schema), mode: "onChange", defaultValues: {
-    paymentMethod: "bkash", 
-    agree:false
-  }, });
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    mode: "onChange",
+    defaultValues: {
+      paymentMethod: "bkash",
+      agree: false,
+    },
+  });
 
   const [copied, setCopied] = useState<string | null>(null);
   const paymentMethod = watch("paymentMethod");
@@ -298,6 +300,95 @@ export default function FancySeminarRegisterFormLight() {
             </div>
           </div>
 
+          {/* aside */}
+          <aside className="space-y-5 md:col-span-2 block sm:hidden">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
+              <h3 className="text-lg font-semibold text-slate-900">পেমেন্ট</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                রেজিস্ট্রেশন ফি: <span className="font-semibold">৬০০৳</span>
+              </p>
+
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <label>
+                  <input
+                    type="radio"
+                    value="bkash"
+                    {...register("paymentMethod")}
+                    className="peer hidden"
+                  />
+                  <div className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-slate-700 peer-checked:border-indigo-500 peer-checked:ring-4 peer-checked:ring-indigo-100">
+                    বিকাশ
+                  </div>
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    value="nagad"
+                    {...register("paymentMethod")}
+                    className="peer hidden"
+                  />
+                  <div className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-slate-700 peer-checked:border-emerald-500 peer-checked:ring-4 peer-checked:ring-emerald-100">
+                    নগদ
+                  </div>
+                </label>
+              </div>
+              <ErrorLine
+                msg={errors.paymentMethod?.message as string | undefined}
+              />
+
+              <div className="mt-2 space-y-2">
+                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <div className="text-sm text-slate-600">বর্তমান নম্বর</div>
+                  <div className="font-medium text-slate-900">{payNumber}</div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => copy("+8801878952705", "bkash")}
+                    className="flex-1 rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                  >
+                    কপি বিকাশ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => copy("+8801881550721", "nagad")}
+                    className="flex-1 rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                  >
+                    কপি নগদ
+                  </button>
+                </div>
+                {copied && (
+                  <p className="mt-1 text-xs text-emerald-600">কপি হয়েছে!</p>
+                )}
+              </div>
+
+              <div className="mt-4">
+                <Field
+                  label="ট্রাঞ্জেকশন আইডি"
+                  required
+                  error={errors.transactionId?.message}
+                >
+                  <input
+                    {...register("transactionId")}
+                    aria-invalid={!!errors.transactionId}
+                    placeholder="যেমন: TXN8ABCD1234"
+                    className={`${inputBase} ${
+                      errors.transactionId
+                        ? inputErr
+                        : "border-slate-200 focus:border-emerald-400 focus:ring-emerald-100"
+                    }`}
+                  />
+                </Field>
+                <p className="text-xs mt-1 text-slate-600">
+                  পেমেন্টের পর আপনার ট্রাঞ্জেকশন আইডি লিখুন। প্রয়োজনে
+                  হোয়াটসঅ্যাপে নিশ্চিত করুন।
+                </p>
+              </div>
+            </div>
+
+           
+          </aside>
+
           <div className="space-y-2 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
             <label className="flex items-start gap-3">
               <input
@@ -316,24 +407,27 @@ export default function FancySeminarRegisterFormLight() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:opacity-60"
+                className="rounded-xl bg-indigo-600 px-4 sm:px-6 py-3 font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:opacity-60"
               >
                 {isSubmitting ? "Submitting..." : "Confirm & Register"}
               </button>
               <button
                 type="button"
                 onClick={() => reset()}
-                className="rounded-xl border border-slate-300 px-5 py-3 text-slate-700 hover:bg-slate-50"
+                className="rounded-xl border border-slate-300 px-4 sm:px-5 py-3 text-slate-700 hover:bg-slate-50"
               >
                 Reset
               </button>
-          
             </div>
+             {/* <div className="rounded-3xl border border-slate-200 bg-white p-5 text-xs text-slate-600 shadow-sm">
+              পাসওয়ার্ড বা সংবেদনশীল তথ্য দেবেন না। প্রদত্ত তথ্য শুধুমাত্র
+              রেজিস্ট্রেশন যাচাইকরণের জন্য ব্যবহৃত হবে।
+            </div> */}
           </div>
         </div>
 
         {/* Payment */}
-        <aside className="space-y-5 md:col-span-2 ">
+        <aside className="space-y-5 md:col-span-2 hidden sm:block">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
             <h3 className="text-lg font-semibold text-slate-900">পেমেন্ট</h3>
             <p className="mt-1 text-sm text-slate-600">
