@@ -374,7 +374,7 @@ export default function FancySeminarRegisterFormLight() {
 
               <div className="mt-4">
                 <Field
-                  label="트াঞ্জেকশন আইডি"
+                  label="ট্রাঞ্জেকশন আইডি"
                   required
                   error={errors.transactionId?.message}
                 >
