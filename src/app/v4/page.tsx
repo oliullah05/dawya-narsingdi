@@ -36,10 +36,8 @@ const schema = z.object({
         });
       }
     }),
-  facebook: z
-    .string()
-    .optional(),
-    // .refine((v) => !v || FB_URL_REGEX.test(v), "সঠিক ফেসবুক লিংক দিন"),
+  facebook: z.string().optional(),
+  // .refine((v) => !v || FB_URL_REGEX.test(v), "সঠিক ফেসবুক লিংক দিন"),
   address: z.string().trim().optional(),
   occupation: z.string().trim().optional(),
   paymentMethod: z
@@ -348,7 +346,9 @@ export default function FancySeminarRegisterFormLight() {
 
               <div className="mt-2 space-y-2">
                 <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                  <div className="text-sm text-slate-600">বর্তমান নম্বর</div>
+                  <div className="text-sm text-slate-600">
+                    {paymentMethod === "nagad" ? "নগদ নম্বর" : "বিকাশ নম্বর"}
+                  </div>
                   <div className="font-medium text-slate-900">{payNumber}</div>
                 </div>
                 <div className="flex gap-2">
@@ -446,7 +446,9 @@ export default function FancySeminarRegisterFormLight() {
 
             <div className="mt-2 space-y-2">
               <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <div className="text-sm text-slate-600">বর্তমান নম্বর</div>
+                        <div className="text-sm text-slate-600">
+                    {paymentMethod === "nagad" ? "নগদ নম্বর" : "বিকাশ নম্বর"}
+                  </div>
                 <div className="font-medium text-slate-900">{payNumber}</div>
               </div>
               <div className="flex gap-2">
