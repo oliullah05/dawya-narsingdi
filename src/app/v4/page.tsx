@@ -54,9 +54,9 @@ email: z
       .trim()
       .min(6, "ট্রাঞ্জেকশন আইডি দিন")
       .max(50, "ট্রাঞ্জেকশন আইডি অতিরিক্ত বড়"),
-    agree: z.literal(true, {
-      errorMap: () => ({ message: "শর্তে সম্মতি দিন" }),
-    }),
+  agree: z
+  .boolean({ error: "শর্তে সম্মতি দিন" })
+  .refine((v) => v === true, { message: "শর্তে সম্মতি দিতে হবে" }),
   })
 //   .superRefine((d, ctx) => {
 //     if (!d.dob && !d.age) {
@@ -125,6 +125,7 @@ export default function FancySeminarRegisterFormLight() {
     
   } = useForm<FormValues>({ resolver: zodResolver(schema), mode: "onChange", defaultValues: {
     paymentMethod: "bkash", 
+    agree:false
   }, });
 
   const [copied, setCopied] = useState<string | null>(null);
@@ -326,11 +327,7 @@ export default function FancySeminarRegisterFormLight() {
               >
                 Reset
               </button>
-              {isSubmitSuccessful && (
-                <span className="text-sm text-emerald-600">
-                  ✅ Submitted (demo front-end)
-                </span>
-              )}
+          
             </div>
           </div>
         </div>
