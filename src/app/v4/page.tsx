@@ -12,7 +12,7 @@ const FB_URL_REGEX =
 
 const schema = z
   .object({
-    fullName: z.string().trim().min(1, "আপনার নাম লিখুন"),
+    fullName: z.string().trim().min(2, "আপনার নাম লিখুন"),
     dob: z
       .string()
       .optional()
@@ -24,7 +24,20 @@ const schema = z
       .refine((v) => !v || (+v >= 8 && +v <= 120), "বয়স ৮–১২০ এর মধ্যে দিন"),
     phone: z.string().trim().regex(ANY_PHONE_REGEX, "সঠিক ফোন নম্বর লিখুন"),
     // email: z.string().trim().email("সঠিক ইমেইল দিন"),
-    email: z.string().trim().email(" "),
+email: z
+  .string()
+  .trim()
+  .optional()
+  .superRefine((val, ctx) => {
+    if (!val) return; // optional: skip if empty/undefined
+    const ok = z.string().email().safeParse(val).success;
+    if (!ok) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "সঠিক ইমেইল দিন",
+      });
+    }
+  }),
     facebook: z
       .string()
       .optional()
@@ -45,20 +58,21 @@ const schema = z
       errorMap: () => ({ message: "শর্তে সম্মতি দিন" }),
     }),
   })
-  .superRefine((d, ctx) => {
-    if (!d.dob && !d.age) {
-      ctx.addIssue({
-        code: "custom",
-        message: "জন্ম তারিখ বা বয়স—যেকোনো একটি দিন",
-        path: ["dob"],
-      });
-      ctx.addIssue({
-        code: "custom",
-        message: "জন্ম তারিখ বা বয়স—যেকোনো একটি দিন",
-        path: ["age"],
-      });
-    }
-  });
+//   .superRefine((d, ctx) => {
+//     if (!d.dob && !d.age) {
+//       ctx.addIssue({
+//         code: "custom",
+//         message: "জন্ম তারিখ বা বয়স—যেকোনো একটি দিন",
+//         path: ["dob"],
+//       });
+//       ctx.addIssue({
+//         code: "custom",
+//         message: "জন্ম তারিখ বা বয়স—যেকোনো একটি দিন",
+//         path: ["age"],
+//       });
+//     }
+    
+//   });
 
 type FormValues = z.infer<typeof schema>;
 
@@ -110,7 +124,7 @@ export default function FancySeminarRegisterFormLight() {
     watch,
     
   } = useForm<FormValues>({ resolver: zodResolver(schema), mode: "onChange", defaultValues: {
-    paymentMethod: "bkash", // ✅ Default selected
+    paymentMethod: "bkash", 
   }, });
 
   const [copied, setCopied] = useState<string | null>(null);
@@ -197,6 +211,8 @@ export default function FancySeminarRegisterFormLight() {
                   placeholder="আপনার ইমেইল লিখুন."
                   className={`${inputBase} ${errors.email ? inputOk : inputOk}`}
                 />
+                {/* This error for matching fullname alignment */}
+                {errors.fullName && <p className="opacity-0">s</p>}
               </Field>
 
               <Field
@@ -363,14 +379,14 @@ export default function FancySeminarRegisterFormLight() {
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => copy("+8801878-952705", "bkash")}
+                  onClick={() => copy("+8801878952705", "bkash")}
                   className="flex-1 rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                 >
                   কপি বিকাশ
                 </button>
                 <button
                   type="button"
-                  onClick={() => copy("+8801881-550721", "nagad")}
+                  onClick={() => copy("+8801881550721", "nagad")}
                   className="flex-1 rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                 >
                   কপি নগদ
@@ -398,7 +414,7 @@ export default function FancySeminarRegisterFormLight() {
                   }`}
                 />
               </Field>
-              <p className="text-xs text-slate-600">
+              <p className="text-xs mt-1 text-slate-600">
                 পেমেন্টের পর আপনার ট্রাঞ্জেকশন আইডি লিখুন। প্রয়োজনে হোয়াটসঅ্যাপে
                 নিশ্চিত করুন।
               </p>
