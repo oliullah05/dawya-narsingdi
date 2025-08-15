@@ -183,7 +183,7 @@ export default function FancySeminarRegisterFormLight() {
       <form
         onSubmit={handleSubmit(onSubmit)}
         noValidate
-        className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-5"
+        className="mx-auto  grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-5"
       >
         {/* Main */}
         <div className="space-y-5 md:col-span-3">
@@ -333,7 +333,7 @@ export default function FancySeminarRegisterFormLight() {
         </div>
 
         {/* Payment */}
-        <aside className="space-y-5 md:col-span-2">
+        <aside className="space-y-5 md:col-span-2 ">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
             <h3 className="text-lg font-semibold text-slate-900">পেমেন্ট</h3>
             <p className="mt-1 text-sm text-slate-600">
