@@ -108,7 +108,10 @@ export default function FancySeminarRegisterFormLight() {
     formState: { errors, isSubmitting, isSubmitSuccessful },
     reset,
     watch,
-  } = useForm<FormValues>({ resolver: zodResolver(schema), mode: "onChange" });
+    
+  } = useForm<FormValues>({ resolver: zodResolver(schema), mode: "onChange", defaultValues: {
+    paymentMethod: "bkash", // ✅ Default selected
+  }, });
 
   const [copied, setCopied] = useState<string | null>(null);
   const paymentMethod = watch("paymentMethod");
